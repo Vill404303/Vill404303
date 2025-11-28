@@ -11,13 +11,14 @@ on:
 jobs:
   generate:
     permissions:
-      contents: write
+      contents: write # Needed for checkout, creating the animation file, and pushing it back
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        # Use the latest major version for better security/compatibility
+        uses: actions/checkout@v4 
 
       - name: Generate pacman-contribution-graph.svg
         uses: abozanona/pacman-contribution-graph@main
@@ -27,12 +28,16 @@ jobs:
       - name: Move generated graph to output directory
         run: |
           mkdir -p dist
+          # The asterisk (*) is correct if the action outputs more than one file or the name is slightly different
           mv pacman-contribution-graph*.svg dist/
 
       - name: Push to output branch
-        uses: crazy-max/ghaction-github-pages@v3.1.0
+        # Use a more modern and recommended action for pushing content back to a branch
+        uses: peaceiris/actions-gh-pages@v3 
         with:
-          target_branch: output
-          build_dir: dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This creates a Git commit and push to the specified branch
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist # Correct property name for the directory to push
+          publish_branch: output # The target branch name
+          # Use a clean commit message
+          commit_message: "feat: Update Pac-Man contribution graph"
