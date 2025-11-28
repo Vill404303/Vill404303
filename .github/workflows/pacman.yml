@@ -1,7 +1,7 @@
 name: Generate pacman animation
 
 on:
-  schedule:
+  schedule: # execute every 12 hours
     - cron: "0 */12 * * *"
   workflow_dispatch:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   generate:
-    # 🌟 CRITICAL: Explicitly grant write permission to the GITHUB_TOKEN
+    # CRITICAL: Grant write permission to the GITHUB_TOKEN for pushing files
     permissions:
       contents: write 
     runs-on: ubuntu-latest
@@ -30,26 +30,10 @@ jobs:
           mkdir -p dist
           mv pacman-contribution-graph*.svg dist/
 
-      - name: Push to output branch using Git CLI
-        run: |
-          # Configure Git user for the commit
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          
-          # Create the output branch if it doesn't exist
-          git checkout --orphan output
-          
-          # Remove all files from the current branch
-          git rm -rf .
-          
-          # Move generated files to the root of the output branch
-          mv dist/* .
-          rm -rf dist
-          
-          # Stage, commit, and push the changes
-          git add .
-          git commit -m "feat: Update Pac-Man contribution graph"
-          
-          # 🌟 CRITICAL: Use the token to push to the remote branch
-          # This command uses the token directly in the push URL
-          git push --force "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" output
+      - name: Push to output branch
+        uses: peaceiris/actions-gh-pages@v3 
+        with:
+          # 👇 These three lines are the required configuration for peaceiris/actions-gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
+          publish_branch: output
